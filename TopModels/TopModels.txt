@@ -1,0 +1,33 @@
+paste("AVG CV: ",mean(avg_cv),"SD CV : ",sd(avg_cv))
+[1] "AVG CV:  0.8411114 SD CV :  0.000511524486217408"
+
+ param <- list("objective" = "binary:logistic",
+                "booster" = "gbtree",
+                "eval_metric" = "auc",
+                "eta"=0.01,
+                "max.depth"=5,
+                "nthread" = 3,
+                "colsample_bytree" = 0.65, 
+                "subsample" = 0.8)
+rounds: 850
+----------------------------------------------------------------------------
+rounds: 1000
+
+param <- list("objective" = "binary:logistic",
+               "booster" = "gbtree",
+              "eval_metric" = "auc",
+              "eta"=0.01,
+              "max.depth"=5,
+              "nthread" = 3,
+              "colsample_bytree" = 0.7, 
+              "subsample" = 0.65)
+[1] "AVG CV:  0.8411358 SD CV :  0.000378977176093757"
+public lb :0.841159
+---------------------------------------------------------------------------------
+e1<-read.csv(file="submission_3.csv",header=TRUE)
+e2<-read.csv(file="submission.csv",header=TRUE)
+
+0.5*e1+ 0.5*e2
+
+----------------------------------------------------------------------------------
+
