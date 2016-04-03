@@ -53,27 +53,7 @@ duplicateColumns<-unique(duplicateColumns)
 df_all<-df_all[,-duplicateColumns]
 
 
-## check for highly correlated columns
 
-correlatedColumns<-c()
-
-for (i in 1:(ncol(df_all)-2))
-{
-  for (j in (i+1):(ncol(df_all)-1))
-  {
-    if(cor(df_all[,i],df_all[,j])>0.98)
-    {
-      
-      correlatedColumns<-c(correlatedColumns,i)
-      
-    }
-    
-  }
-}
-
-correlatedColumns<-unique(correlatedColumns)
-length(correlatedColumns)
-df_all<-df_all[,-correlatedColumns]
 
 
 
@@ -84,22 +64,14 @@ countzeros <- function(x) {
   return( sum(x == 0) )
 }
 
-gzeros <- function(x) {
-  return( sum(x < 0) )
-}
+
 
 
 derived_features<-data.frame(matrix(0, nrow = nrow(df_all)))
 derived_features$zeroCounts <- apply(df_all[,-c(1,ncol(df_all))], 1, FUN=countzeros)
-derived_features$gzeroCounts<- apply(df_all[,-c(1,ncol(df_all))], 1, FUN=gzeros)
 
 
-# Not a right one for centering all the columns
-# #scale and center for all the columns
-# for (i in 2:(ncol(df_all)-1))
-# {
-#   df_all[,i]<- as.numeric(scale(df_all[,i],center=TRUE,scale=TRUE))
-# }
+
 
 # Splitting the data for model
 train <- cbind(df_all[1:nrow(df_train),-c(ncol(df_all))],derived_features[1:nrow(df_train),-c(1)],TARGET=df_all[1:nrow(df_train),c(ncol(df_all))])
@@ -113,7 +85,8 @@ test  <- cbind(df_all[-(1:nrow(df_train)),-c(ncol(df_all))],derived_features[-(1
 
 
 
-
+rm(df_train)
+rm(df_test)
 
 
 
@@ -141,7 +114,7 @@ param <- list("objective" = "binary:logistic",
               "max.depth"=5,
               "nthread" = 3,
               "colsample_bytree" = 0.7, 
-              "subsample" = 0.65)
+              "subsample" = 0.683)
 
 y <- as.numeric(train$TARGET)
 
@@ -155,7 +128,7 @@ watchlist<-list(train=dtrain)
 xgb<-xgb.train(   params              = param, 
                   data                = dtrain, 
                   label=y,
-                  nrounds             = 1000, #1500, 
+                  nrounds             = 920, #1500, 
                   verbose             = TRUE,  #1
                   metrics={'auc'},
                   watchlist = watchlist,
@@ -166,7 +139,7 @@ y_pred <- predict(xgb, data.matrix(test[,-c(1,ncol(test))]))
 
 res <- data.frame(ID = test$ID,TARGET = y_pred)
 
-write.csv(res,"submission_4.csv", row.names = FALSE)
+write.csv(res,"submission_5.csv", row.names = FALSE)
 
 
 
@@ -184,9 +157,9 @@ for (i in seeds)
                 "max.depth"=5,
                 "nthread" = 3,
                 "colsample_bytree" = 0.7, 
-                "subsample" = 0.65)
+                "subsample" = 0.683)
   
-  k<-xgb.cv(params=param,nrounds=900,data=as.matrix(train[,-c(1,ncol(train))]),nfold=5,
+  k<-xgb.cv(params=param,nrounds=800,data=as.matrix(train[,-c(1,ncol(train))]),nfold=5,
          label=y,
          metrics={'auc'},
          print.every.n = 50,

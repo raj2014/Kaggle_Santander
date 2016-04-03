@@ -64,3 +64,5 @@ test  <- cbind(test[,-c(ncol(test))],twoway_test[,-1],TARGET=test[,ncol(test)])
 
 columnList<-sapply(train, function(x)(length(unique(x))))
 columnList
+
+

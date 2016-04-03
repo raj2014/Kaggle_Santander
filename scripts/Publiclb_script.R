@@ -65,15 +65,16 @@ watchlist <- list(train=dtrain)
 param <- list(  objective           = "binary:logistic", 
                 booster             = "gbtree",
                 eval_metric         = "auc",
-                eta                 = 0.02,
+                eta                 = 0.0203,
                 max_depth           = 5,
-                subsample           = 0.68,
-                colsample_bytree    = 0.7
+                subsample           = 0.683,
+                colsample_bytree    = 0.7,
+                nthreads=3
 )
 
 clf <- xgb.train(   params              = param, 
                     data                = dtrain, 
-                    nrounds             = 570, 
+                    nrounds             = 572, 
                     verbose             = 2,
                     watchlist           = watchlist,
                     maximize            = FALSE
@@ -99,16 +100,7 @@ for (i in seeds)
   
 {
   set.seed(i)
-  param <- list(  objective           = "binary:logistic", 
-                  booster             = "gbtree",
-                  eval_metric         = "auc",
-                  eta                 = 0.02,
-                  max_depth           = 5,
-                  subsample           = 0.68,
-                  colsample_bytree    = 0.7
-  )
-  
-  k<-xgb.cv(params=param,nrounds=550,data=dtrain,nfold=5,
+  k<-xgb.cv(params=param,nrounds=530,data=dtrain,nfold=5,
             metrics={'auc'},
             print.every.n = 30,
             verbose=TRUE,
