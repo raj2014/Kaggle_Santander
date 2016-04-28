@@ -10,8 +10,13 @@ df_train <- read.csv("train.csv", stringsAsFactors = F)
 df_test <- read.csv("test.csv", stringsAsFactors = F)
 
 
-# Merging training and test data
 
+# magic bounds
+
+
+
+
+# Merging training and test data
 target<-df_train$TARGET
 df_train$TARGET <- NULL
 df_all <- rbind(df_train, df_test)
@@ -84,10 +89,36 @@ df_all$countnegs<-apply(df_all,1,countnegatives)
 # Adding two way interactions
 # get all the highly correlated variables to target,do the interaction between them
 
+df_train<-df_all[1:num_train_rows,]
+df_test<-df_all[(num_train_rows+1):nrow(df_all),]
+
+
+
+# magic bounds
+m_var15 =as.vector(df_test[,'var15'])
+m_saldo_medio_var5_hace2 = as.vector(df_test[,'saldo_medio_var5_hace2'])
+m_saldo_var33 = as.vector(df_test['saldo_var33'])
+m_var38 = as.vector(df_test[,'var38'])
+m_NV=as.vector(df_test[,'num_var33']+df_test[,'saldo_medio_var33_ult3']+df_test[,'saldo_medio_var44_hace2']+df_test[,'saldo_medio_var44_hace3']+
+  df_test[,'saldo_medio_var33_ult1']+df_test[,'saldo_medio_var44_ult1'])
+m_V21 = as.vector(df_test[,'var21'])
+
+
+print('Setting min-max lims on test data')
+for(f in colnames(df_train)[-1]){
+  lim <- min(df_train[,f])
+  df_test[df_test[,f]<lim,f] <- lim
+  
+  lim <- max(df_train[,f])
+  df_test[df_test[,f]>lim,f] <- lim
+ 
+}
 
 
 
 
+# binding it back to a single dataframe
+df_all<-rbind(df_train,df_test)
 
 
 #Building the model
@@ -100,11 +131,12 @@ param <- list("objective" = "binary:logistic",
               "max.depth"=5,
               "nthread" = 3,
               "colsample_bytree" = 0.7, 
-              "subsample" = 0.8)
+              "subsample" = 0.6815)
 
 
 dtrain<-xgb.DMatrix(data=data.matrix(df_all[c(1:num_train_rows),-c(1)]),label=target)
 watchlist<-list(train=dtrain)
+
 
 set.seed(1)
 # Prediction on test data
@@ -120,9 +152,17 @@ xgb<-xgb.train(   params              = param,
 xgbimp<-xgb.importance(colnames(df_all)[-1],model=xgb)
 
 
-y_pred <- predict(xgb, data.matrix(df_all[c(1:num_train_rows),-c(1)]))
+preds <- predict(xgb, data.matrix(df_all[-c(1:num_train_rows),-c(1)]))
 
-res <- data.frame(ID = test$ID,TARGET = y_pred)
+
+preds[which(m_var15 < 23)] = 0
+preds[which(m_saldo_medio_var5_hace2 > 160000)]=0
+preds[which(m_saldo_var33 > 0)]=0
+preds[which(m_var38 > 3988596)]=0
+preds[which(m_NV>0)]=0
+preds[which(m_V21>7500)]=0
+
+res <- data.frame(ID = test$ID,TARGET = preds)
 
 write.csv(res,"submission_7.csv", row.names = FALSE)
 
